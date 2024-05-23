@@ -13,7 +13,7 @@ Note that the language used in FedCM is slightly different from the OAuth termin
 
 This guide assumes you are starting with a functional OAuth server, including authorization endpoint and token endpoint.
 
-The first part of this will be setting up the core FedCM endpoints. You can follow the MDN [Integration](IdP)(https://developer.mozilla.org/en-US/docs/Web/API/FedCM_API/IDP_integration) guide for this.
+The first part of this will be setting up the core FedCM endpoints. You can follow the MDN [IdP Integration)(https://developer.mozilla.org/en-US/docs/Web/API/FedCM_API/IDP_integration) guide for this.
 
 #### well-known
 
