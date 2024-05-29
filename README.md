@@ -61,7 +61,7 @@ The accounts endpoint is expected to return the list of accounts the user is log
 
 The browser will make a GET request to this endpoint along with any cookies for this domain, but does not contain a `client_id`, Origin or Referer header.
 
-```
+```http
 GET /accounts HTTP/1.1
 Host: login.example.com
 Accept: application/json
@@ -71,7 +71,7 @@ Sec-Fetch-Dest: webidentity
 
 The IdP checks the Sec-Fetch-Dest header and validates the cookie to determine which user is logged in, then returns the account information:
 
-```
+```json
 {
   "accounts": [
     {
