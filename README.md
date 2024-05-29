@@ -1,4 +1,3 @@
-
 # FedCM for OAuth
 
 FedCM for OAuth describes how OAuth clients and servers can use FedCM.
@@ -86,6 +85,12 @@ The IdP checks the Sec-Fetch-Dest header and validates the cookie to determine w
 ```
 
 Note: The `email` value will be displayed in the account chooser in the browser. Currently, this does not have to actually be an email address though (See [607](https://github.com/fedidcg/FedCM/issues/607) for possible enforcement), so you can return another user identifier like username or phone number instead . See [issue 317](https://github.com/fedidcg/FedCM/issues/317) to track a proposal to allow free-form `username` to be used.
+
+The IdP can choose to include a few other optional parameters:
+
+* [approved_clients](https://fedidcg.github.io/FedCM/#dom-identityprovideraccount-approved_clients) is a list of `client_ids`, passed by the IdP, that represents a list of clients that the user has already approved before. If the [`clientId`](https://fedidcg.github.io/FedCM/#dom-identityproviderconfig-clientid) passed in by the RP matches a value in this list, the disclosure text (along with the [terms of service](https://fedidcg.github.io/FedCM/#dom-identityproviderclientmetadata-terms_of_service_url) and [privacy policy](https://fedidcg.github.io/FedCM/#dom-identityproviderclientmetadata-privacy_policy_url)) is not displayed.
+* [login_hints](https://fedidcg.github.io/FedCM/#dom-identityprovideraccount-login_hints) allows the IdP to pass a list of strings that can be matched against to be filtered by the [loginHint](https://fedidcg.github.io/FedCM/#dom-identityproviderrequestoptions-loginhint) value passed by the RP.
+* [domain_hint](https://fedidcg.github.io/FedCM/#dom-identityprovideraccount-domain_hints), like `login_hints`, allows the IdP to offer a list of labels that the RP can filter on by passing a [domainHint](https://fedidcg.github.io/FedCM/#dom-identityproviderrequestoptions-domainhint) JS parameter. 
 
 If the user is not signed in, the IdP should return an `HTTP 401` response.
 
