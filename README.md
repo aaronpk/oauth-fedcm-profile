@@ -298,10 +298,11 @@ param_scope=photos:read+photos:write
 
 This request is effectively equivalent to an OAuth request with the OpenID Connect `prompt=none` parameter, meaning there is no opportunity for the IdP to interact with the user before returning the successful response. So the IdP should only actually grant this request to the client if the user has already previously authorized this client with the requested scopes, following the same logic that would have applied to the IdP deciding to skip the consent screen on subsequent requests.
 
-If the IdP does not want to issue the requested grant, there are two options:
+If the IdP does not want to issue the requested grant, there are three options:
 
 * Return an authorization code for a grant without the full list of requested scopes, only the scopes previously authorized, which may be none
 * Return an error response
+* Return a `continue_on` response to the browser (See [555](https://github.com/fedidcg/FedCM/issues/555)) and continue the authorization flow in a pop-up window to walk the user through what's being requested in addition to what has already been granted.
 
 In the case of returning an authorization code, the client will eventually find out that it wasn't granted the full list of scopes requested once it gets the access token response, at which point it can revert to a normal OAuth redirect flow to get the user's consent for the new scopes.
 
