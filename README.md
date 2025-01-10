@@ -108,8 +108,7 @@ This endpoint is what makes it all work. After the user clicks the browser "cont
 * `account_id` - The ID of the account the user selected from the accounts endpoint
 * `disclosure_text_shown` - Whether the [disclosure text](https://developers.google.com/privacy-sandbox/3pcd/fedcm-developer-guide#id-assertion-endpoint) was presented to the user
 * `is_auto_selected` - Whether the account was [automatically selected](https://developers.google.com/privacy-sandbox/3pcd/fedcm-developer-guide#id-assertion-endpoint) (used in conjunction with `mediation: optional`)
-
-Note: in the future, the RP will probably be able to pass arbitrary parameters to this endpoint ([issue 556](https://github.com/fedidcg/FedCM/issues/556)). This will allow the RP to use PKCE to better secure the end-to-end flow. In the mean time, the RP can include a PKCE code_challenge in the `nonce` parameter.
+* `params` - a JSON-encoded string of the custom parameters the client sent, including the PKCE `code_challenge`
 
 This request will contain cookies, so the IdP will know if the user is logged in and which user is logged in. Other validation steps the IdP does at this stage include:
 
@@ -130,7 +129,7 @@ Access-Control-Allow-Credentials: true
 }
 ```
 
-The fact that this authorization code is returned in a string called `token` is a bit odd. See [issue 578](https://github.com/fedidcg/FedCM/issues/578) to track progress on allowing the IdP to return JSON instead of a "token" string.
+The fact that this authorization code is returned in a string called `token` is a bit odd. See [issue 578](https://github.com/fedidcg/FedCM/issues/578) to track progress on allowing the IdP to return JSON instead of a `token` string.
 
 Note: The `Access-Control-Allow-Origin` header must not contain a trailing slash. If you don't set the right CORS headers here, the browser will throw an error in the console.
 
@@ -192,7 +191,10 @@ Until the RP can include arbitrary data to the assertion endpoint, you can use t
           {
             configURL: "https://login.example.com/fedcm.json",
             clientId: "1234",
-            nonce: "<code_challenge>", // this is probably going away https://github.com/fedidcg/FedCM/issues/556
+            params: {
+              code_challenge: "<code_challenge>",
+              code_challenge_method: "S256",
+            },
           },
         ]
       },
@@ -264,7 +266,7 @@ The response will be the typical OAuth token response: https://datatracker.ietf.
 
 ### Scope
 
-Ideally the client should be able to request OAuth scopes in the FedCM request. Assuming [issue 556](https://github.com/fedidcg/FedCM/issues/556) is resolved, that would be able to be done in the initial request:
+The client can request OAuth scopes in the FedCM request using the `params` object:
 
 ```javascript
 let {token} = await navigator.credentials.get({
@@ -273,14 +275,16 @@ let {token} = await navigator.credentials.get({
       clientId: "1234",
       configURL: "https://login.example.com/fedcm.json",
       params: {
-        "scope": "photos:read photos:write",
+        code_challenge: "<code_challenge>",
+        code_challenge_method: "S256",
+        scope: "photos:read photos:write",
       }
     },
   }
 });
 ```
 
-This would be sent by the browser to the assertion endpoint as:
+This would be sent by the browser to the assertion endpoint as (PKCE parameters omitted for brevity):
 
 ```http
 POST /assertion HTTP/1.1
@@ -293,14 +297,17 @@ Sec-Fetch-Dest: webidentity
 account_id=123&
 client_id=client1234&
 disclosure_text_shown=false&
-param_scope=photos:read+photos:write
+scope=%7B%22photos:read+photos:write%22%7D
 ```
 
 This request is effectively equivalent to an OAuth request with the OpenID Connect `prompt=none` parameter, meaning there is no opportunity for the IdP to interact with the user before returning the successful response. So the IdP should only actually grant this request to the client if the user has already previously authorized this client with the requested scopes, following the same logic that would have applied to the IdP deciding to skip the consent screen on subsequent requests.
 
-If the IdP does not want to issue the requested grant, there are two options:
+(TODO: Add notes for continuation API here.)
+
+If the IdP does not want to issue the requested grant, it can:
 
 * Return an authorization code for a grant without the full list of requested scopes, only the scopes previously authorized, which may be none
+* Return a continuation API response
 * Return an error response
 
 In the case of returning an authorization code, the client will eventually find out that it wasn't granted the full list of scopes requested once it gets the access token response, at which point it can revert to a normal OAuth redirect flow to get the user's consent for the new scopes.
@@ -364,7 +371,7 @@ let {token} = await navigator.credentials.get({
       clientId: "1234",
       configURL: "https://login.example.com/fedcm.json",
       params: {
-        "scope": "openid",
+        scope: "openid",
       }
     },
   }
@@ -384,8 +391,8 @@ let {token} = await navigator.credentials.get({
       clientId: "1234",
       configURL: "https://login.example.com/fedcm.json",
       params: {
-        "scope": "openid",
-        "response_mode": "id_token"
+        scope: "openid",
+        response_mode: "id_token"
       }
     },
   }
